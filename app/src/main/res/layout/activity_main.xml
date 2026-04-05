@@ -1,180 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/bg_dark"
-    android:fillViewport="true">
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@color/bg_dark" android:fillViewport="true">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="20dp">
 
         <!-- Header -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="⛽ ဆီကိုတာ စာရင်း"
-            android:textSize="26sp"
-            android:textStyle="bold"
-            android:textColor="@color/accent_gold"
-            android:layout_marginBottom="4dp" />
+            android:textSize="26sp" android:textStyle="bold"
+            android:textColor="@color/accent_gold" android:layout_marginBottom="4dp"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
-            <TextView
-                android:id="@+id/tvVehicleName"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="15sp"
-                android:textColor="@color/text_secondary"/>
-            <TextView
-                android:id="@+id/tvVehicleType"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="3dp"
-                android:background="@drawable/rounded_status_bg"
-                android:textColor="@color/accent_gold"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:layout_marginBottom="16dp">
+            <TextView android:id="@+id/tvVehicleName"
+                android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:textSize="15sp" android:textColor="@color/text_secondary"/>
+            <TextView android:id="@+id/tvVehicleType"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:textSize="13sp" android:textStyle="bold"
+                android:paddingHorizontal="10dp" android:paddingVertical="3dp"
+                android:background="@drawable/rounded_status_bg" android:textColor="@color/accent_gold"/>
         </LinearLayout>
 
         <!-- Status Card -->
-        <androidx.cardview.widget.CardView
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            app:cardBackgroundColor="@color/card_bg"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp"
-            android:layout_marginBottom="16dp">
+        <androidx.cardview.widget.CardView xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/card_bg" app:cardCornerRadius="12dp"
+            app:cardElevation="4dp" android:layout_marginBottom="16dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="16dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:padding="16dp">
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:text="ကိုတာ အခြေအနေ / QUOTA STATUS"
-                    android:textSize="11sp"
-                    android:textColor="@color/text_secondary"
-                    android:letterSpacing="0.1"
-                    android:layout_marginBottom="12dp" />
+                    android:textSize="11sp" android:textColor="@color/text_secondary"
+                    android:letterSpacing="0.1" android:layout_marginBottom="12dp"/>
 
-                <!-- Row: Total / Used / Remaining -->
+                <!-- Quota row -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="horizontal" android:layout_marginBottom="8dp">
-
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="စုစုပေါင်း" android:textSize="11sp" android:textColor="@color/text_secondary"/>
-                        <TextView android:id="@+id/tvTotalQuota" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="စုစုပေါင်း" android:textSize="11sp" android:textColor="@color/text_secondary"/>
+                        <TextView android:id="@+id/tvTotalQuota" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
                     </LinearLayout>
-
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="သုံးပြီး" android:textSize="11sp" android:textColor="@color/text_secondary"/>
-                        <TextView android:id="@+id/tvUsedQuota" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:textSize="22sp" android:textStyle="bold" android:textColor="@color/status_orange"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="သုံးပြီး" android:textSize="11sp" android:textColor="@color/text_secondary"/>
+                        <TextView android:id="@+id/tvUsedQuota" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/status_orange"/>
                     </LinearLayout>
-
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="ကျန်ဆီ" android:textSize="11sp" android:textColor="@color/text_secondary"/>
-                        <TextView android:id="@+id/tvRemainingQuota" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:textSize="22sp" android:textStyle="bold" android:textColor="@color/status_green"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ကျန်ဆီ" android:textSize="11sp" android:textColor="@color/text_secondary"/>
+                        <TextView android:id="@+id/tvRemainingQuota" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/status_green"/>
                     </LinearLayout>
                 </LinearLayout>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp"
-                    android:background="@color/divider" android:layout_marginVertical="8dp"/>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginVertical="8dp"/>
 
-                <!-- Row: Refills -->
+                <!-- Refills row -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="horizontal" android:layout_marginBottom="12dp">
-
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="ဖြည့်ပြီး" android:textSize="11sp" android:textColor="@color/text_secondary"/>
-                        <TextView android:id="@+id/tvRefillsUsed" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ဖြည့်ပြီး" android:textSize="11sp" android:textColor="@color/text_secondary"/>
+                        <TextView android:id="@+id/tvRefillsUsed" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
                     </LinearLayout>
-
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="ကျန်ခွင့်" android:textSize="11sp" android:textColor="@color/text_secondary"/>
-                        <TextView android:id="@+id/tvRefillsLeft" android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:textSize="22sp" android:textStyle="bold" android:textColor="@color/status_green"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ကျန်ခွင့်" android:textSize="11sp" android:textColor="@color/text_secondary"/>
+                        <TextView android:id="@+id/tvRefillsLeft" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/status_green"/>
                     </LinearLayout>
-
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="အများဆုံး" android:textSize="11sp" android:textColor="@color/text_secondary"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                            android:text="2" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_secondary"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="အများဆုံး" android:textSize="11sp" android:textColor="@color/text_secondary"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2" android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_secondary"/>
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Window Status -->
-                <TextView
-                    android:id="@+id/tvWindowStatus"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:padding="8dp"
-                    android:background="@drawable/rounded_status_bg"
-                    android:gravity="center"
-                    android:layout_marginBottom="12dp"/>
+                <!-- Window status -->
+                <TextView android:id="@+id/tvWindowStatus"
+                    android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:textSize="13sp" android:textStyle="bold" android:padding="8dp"
+                    android:background="@drawable/rounded_status_bg" android:gravity="center"
+                    android:layout_marginBottom="16dp"/>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp"
-                    android:background="@color/divider" android:layout_marginBottom="12dp"/>
+                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginBottom="14dp"/>
 
-                <!-- Important Dates -->
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="အရေးကြီးသော ရက်စွဲများ / IMPORTANT DATES"
-                    android:textSize="11sp"
-                    android:textColor="@color/text_secondary"
-                    android:letterSpacing="0.1"
-                    android:layout_marginBottom="10dp" />
+                <!-- Important Dates — BIG TEXT -->
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="အရေးကြီးသော ရက်စွဲများ"
+                    android:textSize="11sp" android:textColor="@color/text_secondary"
+                    android:letterSpacing="0.1" android:layout_marginBottom="12dp"/>
 
+                <!-- 1st refill date -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:layout_marginBottom="8dp">
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                        android:text="📅 ပထမ ဖြည့်ခဲ့သောနေ့" android:textSize="12sp" android:textColor="@color/text_secondary"/>
+                    android:orientation="vertical" android:layout_marginBottom="12dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="📅 ပထမ ဆီဖြည့်ခဲ့သောနေ့"
+                        android:textSize="12sp" android:textColor="@color/text_secondary"/>
                     <TextView android:id="@+id/tvDate1stRefill"
-                        android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                        android:textSize="12sp" android:textStyle="bold" android:textColor="@color/text_primary" android:gravity="end"/>
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textSize="18sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
                 </LinearLayout>
 
+                <!-- 2nd refill date -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:layout_marginBottom="8dp">
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                        android:text="⛽ ဒုတိယ ဖြည့်နိုင်သောနေ့" android:textSize="12sp" android:textColor="@color/text_secondary"/>
+                    android:orientation="vertical" android:layout_marginBottom="12dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="⛽ ဒုတိယ ဆီဖြည့်နိုင်သောနေ့"
+                        android:textSize="12sp" android:textColor="@color/text_secondary"/>
                     <TextView android:id="@+id/tvDate2ndRefill"
-                        android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                        android:textSize="12sp" android:textStyle="bold" android:textColor="@color/status_orange" android:gravity="end"/>
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textSize="18sp" android:textStyle="bold" android:textColor="@color/status_orange"/>
                 </LinearLayout>
 
+                <!-- New quota date -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                        android:text="🆕 ကိုတာ အသစ် စတင်နိုင်သောနေ့" android:textSize="12sp" android:textColor="@color/text_secondary"/>
+                    android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:text="🆕 ကိုတာ အသစ် စတင်နိုင်သောနေ့"
+                        android:textSize="12sp" android:textColor="@color/text_secondary"/>
                     <TextView android:id="@+id/tvDateNewQuota"
-                        android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                        android:textSize="12sp" android:textStyle="bold" android:textColor="@color/status_green" android:gravity="end"/>
+                        android:layout_width="wrap_content" android:layout_height="wrap_content"
+                        android:textSize="18sp" android:textStyle="bold" android:textColor="@color/status_green"/>
                 </LinearLayout>
 
             </LinearLayout>
@@ -196,14 +141,20 @@
 
         <Button android:id="@+id/btnCheckStatus"
             android:layout_width="match_parent" android:layout_height="50dp"
-            android:text="📊  ကိုတာ အခြေအနေ စစ်ဆေးမည်"
+            android:text="📊  ကိုတာ အခြေအနေ ကြည့်မည်"
             android:textSize="15sp" android:textColor="@color/text_primary"
+            android:backgroundTint="@color/card_bg" android:layout_marginBottom="10dp"/>
+
+        <Button android:id="@+id/btnNotifSettings"
+            android:layout_width="match_parent" android:layout_height="46dp"
+            android:text="🔔  Notification အချိန် On/Off"
+            android:textSize="14sp" android:textColor="@color/status_green"
             android:backgroundTint="@color/card_bg" android:layout_marginBottom="10dp"/>
 
         <Button android:id="@+id/btnTestNotif"
             android:layout_width="match_parent" android:layout_height="44dp"
-            android:text="🔔  Notification စမ်းသပ်မည်"
-            android:textSize="14sp" android:textColor="@color/status_green"
+            android:text="🧪  Notification စမ်းသပ်မည်"
+            android:textSize="14sp" android:textColor="@color/text_secondary"
             android:backgroundTint="@color/card_bg" android:layout_marginBottom="10dp"/>
 
         <Button android:id="@+id/btnSettings"
@@ -212,17 +163,11 @@
             android:textSize="14sp" android:textColor="@color/text_secondary"
             android:backgroundTint="@color/bg_dark" android:layout_marginBottom="16dp"/>
 
-        <!-- Status answer box (shown after btnCheckStatus) -->
-        <TextView
-            android:id="@+id/tvChatAnswer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/text_primary"
-            android:textSize="14sp"
-            android:lineSpacingMultiplier="1.5"
-            android:visibility="gone"
-            android:padding="14dp"
-            android:background="@drawable/rounded_status_bg" />
+        <TextView android:id="@+id/tvChatAnswer"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textColor="@color/text_primary" android:textSize="14sp"
+            android:lineSpacingMultiplier="1.5" android:visibility="gone"
+            android:padding="14dp" android:background="@drawable/rounded_status_bg"/>
 
     </LinearLayout>
 </ScrollView>

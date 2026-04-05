@@ -14,80 +14,66 @@ import java.util.Calendar;
 public class AlarmScheduler {
 
     private static final String TAG = "AlarmScheduler";
-    public static final int REMINDER_REQUEST_CODE = 1001;
 
-    /**
-     * Schedule a daily check at 7:00 PM.
-     * The ReminderReceiver will decide whether to actually show a notification
-     * based on QuotaManager.shouldRemindTonight().
-     */
-    public static void scheduleDailyReminder(Context context) {
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        if (alarmManager == null) return;
+    // Request codes for each alarm slot
+    public static final int RC_DAY_BEFORE_NOON    = 1001; // မနေ့/မနက်တစ်ခါ  12:00 pm
+    public static final int RC_DAY_BEFORE_EVENING = 1002; // မနေ့/မနက်တစ်ခါ  18:00 pm
+    public static final int RC_REFILL_DAY_MORNING = 1003; // ဖြည့်နိုင်သောနေ့  07:00 am
+
+    public static void scheduleAllAlarms(Context context) {
+        QuotaManager qm = new QuotaManager(context);
+
+        // All 3 fire daily; ReminderReceiver decides whether to show notification
+        scheduleDailyAt(context, RC_DAY_BEFORE_NOON,    12, 0, ReminderReceiver.ACTION_NOON);
+        scheduleDailyAt(context, RC_DAY_BEFORE_EVENING, 18, 0, ReminderReceiver.ACTION_EVENING);
+        scheduleDailyAt(context, RC_REFILL_DAY_MORNING,  7, 0, ReminderReceiver.ACTION_MORNING);
+        Log.d(TAG, "All 3 alarms scheduled");
+    }
+
+    private static void scheduleDailyAt(Context context, int requestCode,
+                                         int hour, int minute, String action) {
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (am == null) return;
 
         Intent intent = new Intent(context, ReminderReceiver.class);
-        intent.setAction(ReminderReceiver.ACTION_DAILY_CHECK);
+        intent.setAction(action);
+        PendingIntent pi = PendingIntent.getBroadcast(context, requestCode, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context,
-                REMINDER_REQUEST_CODE,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-
-        // Set next 7:00 PM
         Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.HOUR_OF_DAY, 19);
-        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.HOUR_OF_DAY, hour);
+        cal.set(Calendar.MINUTE, minute);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        if (cal.getTimeInMillis() <= System.currentTimeMillis()) {
+        if (cal.getTimeInMillis() <= System.currentTimeMillis())
             cal.add(Calendar.DAY_OF_YEAR, 1);
-        }
 
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (alarmManager.canScheduleExactAlarms()) {
-                    alarmManager.setRepeating(
-                            AlarmManager.RTC_WAKEUP,
-                            cal.getTimeInMillis(),
-                            AlarmManager.INTERVAL_DAY,
-                            pendingIntent
-                    );
-                } else {
-                    alarmManager.setInexactRepeating(
-                            AlarmManager.RTC_WAKEUP,
-                            cal.getTimeInMillis(),
-                            AlarmManager.INTERVAL_DAY,
-                            pendingIntent
-                    );
-                }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && am.canScheduleExactAlarms()) {
+                am.setRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
+                        AlarmManager.INTERVAL_DAY, pi);
             } else {
-                alarmManager.setRepeating(
-                        AlarmManager.RTC_WAKEUP,
-                        cal.getTimeInMillis(),
-                        AlarmManager.INTERVAL_DAY,
-                        pendingIntent
-                );
+                am.setInexactRepeating(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(),
+                        AlarmManager.INTERVAL_DAY, pi);
             }
-            Log.d(TAG, "Daily reminder scheduled for 7:00 PM");
         } catch (Exception e) {
-            Log.e(TAG, "Failed to schedule alarm: " + e.getMessage());
+            Log.e(TAG, "Alarm schedule failed: " + e.getMessage());
         }
     }
 
-    public static void cancelDailyReminder(Context context) {
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        if (alarmManager == null) return;
+    public static void cancelAll(Context context) {
+        cancelAlarm(context, RC_DAY_BEFORE_NOON,    ReminderReceiver.ACTION_NOON);
+        cancelAlarm(context, RC_DAY_BEFORE_EVENING, ReminderReceiver.ACTION_EVENING);
+        cancelAlarm(context, RC_REFILL_DAY_MORNING, ReminderReceiver.ACTION_MORNING);
+    }
+
+    private static void cancelAlarm(Context context, int requestCode, String action) {
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (am == null) return;
         Intent intent = new Intent(context, ReminderReceiver.class);
-        intent.setAction(ReminderReceiver.ACTION_DAILY_CHECK);
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(
-                context,
-                REMINDER_REQUEST_CODE,
-                intent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-        alarmManager.cancel(pendingIntent);
-        Log.d(TAG, "Daily reminder cancelled");
+        intent.setAction(action);
+        PendingIntent pi = PendingIntent.getBroadcast(context, requestCode, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        am.cancel(pi);
     }
 }

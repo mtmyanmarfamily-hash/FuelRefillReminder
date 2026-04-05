@@ -16,89 +16,66 @@ import com.myanmar.petrolreminder.ui.MainActivity;
 
 public class NotificationHelper {
 
-    public static final String CHANNEL_ID       = "petrol_reminder_channel";
-    public static final String CHANNEL_NAME     = "Petrol Quota Reminders";
-    public static final int    NOTIF_ID_WITHIN  = 2001;  // refill within current window
-    public static final int    NOTIF_ID_NEW     = 2002;  // new quota available tomorrow
+    public static final String CHANNEL_ID   = "petrol_reminder_channel";
+    public static final String CHANNEL_NAME = "ဆီကိုတာ သတိပေးချက်";
+    public static final int    NOTIF_ID_1   = 2001;
+    public static final int    NOTIF_ID_2   = 2002;
+    public static final int    NOTIF_ID_3   = 2003;
 
     public static void createNotificationChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    CHANNEL_ID,
-                    CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_HIGH
-            );
-            channel.setDescription("Reminds you about your 7-day petrol quota.");
-            channel.enableVibration(true);
-            NotificationManager manager = context.getSystemService(NotificationManager.class);
-            if (manager != null) manager.createNotificationChannel(channel);
+            NotificationChannel ch = new NotificationChannel(
+                    CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
+            ch.setDescription("ဆီဖြည့်ရန် အချိန်မတိုင်မီ သတိပေးချက်များ");
+            ch.enableVibration(true);
+            NotificationManager nm = context.getSystemService(NotificationManager.class);
+            if (nm != null) nm.createNotificationChannel(ch);
         }
     }
 
-    /**
-     * Dispatches the correct notification based on ReminderType.
-     * Called by ReminderReceiver every evening at 7 PM.
-     */
-    public static void showReminderNotification(Context context, QuotaManager qm) {
-        QuotaManager.ReminderType type = qm.getReminderTypeForTonight();
-        switch (type) {
-            case NEW_QUOTA_AVAILABLE:
-                showNewQuotaNotification(context, qm);
-                break;
-            case REFILL_WITHIN_WINDOW:
-                showWithinWindowNotification(context, qm);
-                break;
-            default:
-                break;
-        }
-    }
-
-    /**
-     * "Tomorrow your new quota is available — အသစ် စထည့် လို့ရပါပီ"
-     * Fires when the current 7-day window expires tomorrow.
-     */
-    private static void showNewQuotaNotification(Context context, QuotaManager qm) {
+    /** မနေ့ noon / evening — "မနက်ဖြန် ဆီဖြည့်နိုင်မည်" */
+    public static void showDayBeforeNotification(Context context, QuotaManager qm, boolean isEvening) {
         String vehicle = qm.getVehicleName();
+        String vType   = qm.getVehicleTypeLabel();
         float  total   = qm.getTotalQuota();
+        int    refLeft = qm.getRemainingRefills();
 
-        String title = "🆕 New Quota Tomorrow! – " + vehicle;
-        String body  = String.format(
-                "မနက်ဖြန် ဆီကိုတာ အသစ် စတင်ပါပြီ။\n" +
-                "Tomorrow your new %.0f L quota is available.\n" +
-                "အသစ် စထည့် လို့ရပါပီ ✅\n\n" +
-                "Ready for 2 refills in the new window!",
-                total
-        );
-        postNotification(context, title, body, NOTIF_ID_NEW);
+        String title = isEvening
+            ? "🌙 မနက်ဖြန် ဆီဖြည့်နိုင်မည် — " + vehicle
+            : "☀️ မနက်ဖြန် ဆီဖြည့်နိုင်မည် — " + vehicle;
+        String body = vType + " | မနက်ဖြန် ဆီဖြည့်ရမည့်နေ့\n"
+            + String.format("ကိုတာ: %.1f L | ဖြည့်ခွင့်ကျန်: %d ကြိမ်\n", total, refLeft)
+            + "🆕 ကိုတာ အသစ်: " + qm.getNewQuotaDateStr();
+        post(context, title, body, isEvening ? NOTIF_ID_2 : NOTIF_ID_1);
     }
 
-    /**
-     * Reminder that the window resets tomorrow and quota/refills still remain.
-     */
-    private static void showWithinWindowNotification(Context context, QuotaManager qm) {
-        float  remaining   = qm.getRemainingLitres();
-        int    refillsLeft = qm.getRemainingRefills();
-        String vehicle     = qm.getVehicleName();
+    /** ဆီဖြည့်နိုင်သောနေ့ မနက် ၇ နာရီ */
+    public static void showRefillDayMorningNotification(Context context, QuotaManager qm) {
+        String vehicle = qm.getVehicleName();
+        String vType   = qm.getVehicleTypeLabel();
+        float  rem     = qm.getRemainingLitres();
+        int    refLeft = qm.getRemainingRefills();
 
-        String title = "⛽ Refuel Tomorrow! – " + vehicle;
-        String body  = String.format(
-                "Your 7-day quota resets tomorrow.\n" +
-                "Remaining quota: %.0f L  |  Refills left: %d\n" +
-                "Don't miss your quota!",
-                remaining, refillsLeft
-        );
-        postNotification(context, title, body, NOTIF_ID_WITHIN);
+        String title = "⛽ ဒီနေ့ ဆီဖြည့်နိုင်သည်! — " + vehicle;
+        String body  = vType + " — ဒီနေ့ ဆီဖြည့်ရမည့်နေ့ဖြစ်သည်\n"
+            + String.format("ကျန်ကိုတာ: %.1f L | ဖြည့်ခွင့်: %d ကြိမ်\n", rem, refLeft)
+            + "🆕 ကိုတာ အသစ်: " + qm.getNewQuotaDateStr();
+        post(context, title, body, NOTIF_ID_3);
     }
 
-    private static void postNotification(Context context, String title, String body, int notifId) {
-        Intent tapIntent = new Intent(context, MainActivity.class);
-        tapIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        PendingIntent pi = PendingIntent.getActivity(
-                context, notifId, tapIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
+    /** New quota tomorrow (existing) */
+    public static void showNewQuotaNotification(Context context, QuotaManager qm) {
+        String title = "🆕 မနက်ဖြန် ကိုတာ အသစ်! — " + qm.getVehicleName();
+        String body  = String.format("မနက်ဖြန် ဆီကိုတာ အသစ် စတင်ပါပြီ။\n%.1f L ပြည့်ဝပါသည်။\nအသစ် စထည့် လို့ရပါပီ ✅", qm.getTotalQuota());
+        post(context, title, body, NOTIF_ID_1);
+    }
 
-        Notification notification = new NotificationCompat.Builder(context, CHANNEL_ID)
+    private static void post(Context context, String title, String body, int notifId) {
+        Intent tap = new Intent(context, MainActivity.class);
+        tap.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pi = PendingIntent.getActivity(context, notifId, tap,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        Notification n = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_fuel)
                 .setContentTitle(title)
                 .setContentText(body)
@@ -108,21 +85,12 @@ public class NotificationHelper {
                 .setAutoCancel(true)
                 .setVibrate(new long[]{0, 300, 200, 300})
                 .build();
-
-        try {
-            NotificationManagerCompat.from(context).notify(notifId, notification);
-        } catch (SecurityException e) {
-            // Notification permission not granted
-        }
+        try { NotificationManagerCompat.from(context).notify(notifId, n); }
+        catch (SecurityException ignored) {}
     }
 
-    // ─── Test helpers (called directly from UI) ───────────────────────────────
-
-    public static void fireTestNewQuotaNotification(Context context, QuotaManager qm) {
-        showNewQuotaNotification(context, qm);
-    }
-
-    public static void fireTestWithinWindowNotification(Context context, QuotaManager qm) {
-        showWithinWindowNotification(context, qm);
-    }
+    // Test helpers
+    public static void fireTestNewQuotaNotification(Context context, QuotaManager qm)       { showNewQuotaNotification(context, qm); }
+    public static void fireTestWithinWindowNotification(Context context, QuotaManager qm)    { showDayBeforeNotification(context, qm, true); }
+    public static void fireTestMorningNotification(Context context, QuotaManager qm)         { showRefillDayMorningNotification(context, qm); }
 }
