@@ -20,35 +20,25 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: gradle
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: gradle-
-
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Download Gradle wrapper jar
+      # CRITICAL FIX: Removes \r characters from Termux/Windows and sets executable bit
+      - name: Fix Line Endings and Permissions
         run: |
-          mkdir -p gradle/wrapper
-          curl -L -o gradle/wrapper/gradle-wrapper.jar \
-            https://github.com/gradle/gradle/raw/v8.4.0/gradle/wrapper/gradle-wrapper.jar
+          sed -i 's/\r$//' gradlew
+          chmod +x gradlew
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Upload APK
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: PetrolQuotaMM-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
+      # Optional: Build Release APK
       - name: Build Release APK (unsigned)
         run: ./gradlew assembleRelease --no-daemon
 
