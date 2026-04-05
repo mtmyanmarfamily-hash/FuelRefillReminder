@@ -2,45 +2,49 @@ name: Build APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main", "develop" ]
   pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
-          # We don't cache gradle here because we are using the system version
-          
-      # We use 'gradle' (system-wide) instead of './gradlew' (local file)
-      # This completely bypasses "Permission Denied" or "Usage" errors.
-      - name: Build Debug APK with System Gradle
-        run: gradle assembleDebug --no-daemon --stacktrace
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
 
-      - name: Upload Debug APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: PetrolQuotaMM-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@v3
 
-      # Optional: Build Release APK
-      - name: Build Release APK (unsigned)
-        run: gradle assembleRelease --no-daemon
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
 
-      - name: Upload Release APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: PetrolQuotaMM-release
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
-          retention-days: 30
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Build release APK
+      run: ./gradlew assembleRelease --stacktrace --info
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release.apk
+        path: app/build/outputs/apk/release/app-release.apk
+        retention-days: 30
