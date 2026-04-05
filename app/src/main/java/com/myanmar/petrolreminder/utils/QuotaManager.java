@@ -226,7 +226,7 @@ public class QuotaManager {
             "%s",
             used, total,
             remaining,
-            getRefillCount(), MAX_REFILLS_PER_WINDOW,
+            getRefillCount(),
             refillsLeft,
             daysLeft, daysLeft == 1 ? "" : "s",
             refillsLeft > 0
@@ -271,6 +271,69 @@ public class QuotaManager {
     /** Convenience — kept for any callers that just need a boolean. */
     public boolean shouldRemindTonight() {
         return getReminderTypeForTonight() != ReminderType.NONE;
+    }
+
+    // ─── Edit / correct last refill ──────────────────────────────────────────
+
+    /** Returns the litres of the most recent refill, or 0 if none. */
+    public float getLastRefillLitres() {
+        int count = prefs.getInt(KEY_REFILL_COUNT, 0);
+        if (count == 2) return prefs.getFloat(KEY_REFILL_2_LITRES, 0f);
+        if (count == 1) return prefs.getFloat(KEY_REFILL_1_LITRES, 0f);
+        return 0f;
+    }
+
+    /** Returns which refill number (1 or 2) was last recorded, or 0 if none. */
+    public int getLastRefillNumber() {
+        return prefs.getInt(KEY_REFILL_COUNT, 0);
+    }
+
+    /**
+     * Correct the last recorded refill with a new litre amount.
+     * Returns false if no refill exists or new amount exceeds quota.
+     */
+    public boolean editLastRefill(float newLitres) {
+        int count = prefs.getInt(KEY_REFILL_COUNT, 0);
+        if (count == 0) return false;
+
+        float total = getTotalQuota();
+        // Calculate used excluding the last refill
+        float otherRefill = (count == 2)
+                ? prefs.getFloat(KEY_REFILL_1_LITRES, 0f)
+                : 0f;
+        if (newLitres > (total - otherRefill) + 0.01f) return false;
+
+        SharedPreferences.Editor ed = prefs.edit();
+        if (count == 1) {
+            ed.putFloat(KEY_REFILL_1_LITRES, newLitres);
+        } else {
+            ed.putFloat(KEY_REFILL_2_LITRES, newLitres);
+        }
+        ed.apply();
+        return true;
+    }
+
+    /**
+     * Delete (undo) the last recorded refill entirely.
+     * If it was refill #1, the whole window is cleared.
+     * If it was refill #2, window stays active with just refill #1.
+     */
+    public void deleteLastRefill() {
+        int count = prefs.getInt(KEY_REFILL_COUNT, 0);
+        if (count == 0) return;
+        SharedPreferences.Editor ed = prefs.edit();
+        if (count == 1) {
+            // Remove entire window
+            ed.remove(KEY_WINDOW_START_MS)
+              .remove(KEY_REFILL_COUNT)
+              .remove(KEY_REFILL_1_LITRES)
+              .remove(KEY_REFILL_2_LITRES);
+        } else {
+            // Just remove refill #2
+            ed.remove(KEY_REFILL_2_LITRES)
+              .putInt(KEY_REFILL_COUNT, 1);
+        }
+        ed.apply();
     }
 
     public enum RefillResult {

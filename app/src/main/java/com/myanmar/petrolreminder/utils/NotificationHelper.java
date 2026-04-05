@@ -115,4 +115,14 @@ public class NotificationHelper {
             // Notification permission not granted
         }
     }
+
+    // ─── Test helpers (called directly from UI) ───────────────────────────────
+
+    public static void fireTestNewQuotaNotification(Context context, QuotaManager qm) {
+        showNewQuotaNotification(context, qm);
+    }
+
+    public static void fireTestWithinWindowNotification(Context context, QuotaManager qm) {
+        showWithinWindowNotification(context, qm);
+    }
 }
