@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_dark"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="⛽ Petrol Quota"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/accent_gold"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tvVehicleName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Status Card -->
+        <androidx.cardview.widget.CardView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/card_bg"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="QUOTA STATUS"
+                    android:textSize="11sp"
+                    android:textColor="@color/text_secondary"
+                    android:letterSpacing="0.15"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Row: Total / Used -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Total Quota" android:textSize="12sp" android:textColor="@color/text_secondary"/>
+                        <TextView android:id="@+id/tvTotalQuota"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Used" android:textSize="12sp" android:textColor="@color/text_secondary"/>
+                        <TextView android:id="@+id/tvUsedQuota"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textSize="22sp" android:textStyle="bold" android:textColor="@color/status_orange"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Remaining" android:textSize="12sp" android:textColor="@color/text_secondary"/>
+                        <TextView android:id="@+id/tvRemainingQuota"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textSize="22sp" android:textStyle="bold" android:textColor="@color/status_green"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Divider -->
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/divider" android:layout_marginVertical="8dp"/>
+
+                <!-- Row: Refills -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="12dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Refills Used" android:textSize="12sp" android:textColor="@color/text_secondary"/>
+                        <TextView android:id="@+id/tvRefillsUsed"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textSize="22sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Refills Left" android:textSize="12sp" android:textColor="@color/text_secondary"/>
+                        <TextView android:id="@+id/tvRefillsLeft"
+                            android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:textSize="22sp" android:textStyle="bold" android:textColor="@color/status_green"/>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="Max/Window" android:textSize="12sp" android:textColor="@color/text_secondary"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                            android:text="2" android:textSize="22sp" android:textStyle="bold"
+                            android:textColor="@color/text_secondary"/>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Window status -->
+                <TextView
+                    android:id="@+id/tvWindowStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:padding="8dp"
+                    android:background="@drawable/rounded_status_bg"
+                    android:gravity="center" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Action Buttons -->
+        <Button
+            android:id="@+id/btnRecordRefill"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="⛽  Record Today's Refill"
+            android:textSize="16sp"
+            android:textColor="@color/bg_dark"
+            android:backgroundTint="@color/accent_gold"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/btnCheckStatus"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="📊  Check Refuel Status"
+            android:textSize="15sp"
+            android:textColor="@color/text_primary"
+            android:backgroundTint="@color/card_bg"
+            android:layout_marginBottom="10dp" />
+
+        <Button
+            android:id="@+id/btnSettings"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:text="⚙️  Edit Vehicle / Quota"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            android:backgroundTint="@color/bg_dark"
+            android:layout_marginBottom="20dp" />
+
+        <!-- Chat Q&A -->
+        <androidx.cardview.widget.CardView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardBackgroundColor="@color/card_bg"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="4dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💬 Ask About Your Quota"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginBottom="10dp" />
+
+                <EditText
+                    android:id="@+id/etChatQuestion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="e.g. When can I refuel? How much is left?"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
+                    android:backgroundTint="@color/accent_gold"
+                    android:inputType="text"
+                    android:imeOptions="actionSend"
+                    android:layout_marginBottom="10dp"
+                    android:paddingVertical="8dp"/>
+
+                <Button
+                    android:id="@+id/btnAsk"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ask"
+                    android:backgroundTint="@color/accent_gold"
+                    android:textColor="@color/bg_dark"
+                    android:layout_gravity="end" />
+
+                <TextView
+                    android:id="@+id/tvChatAnswer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:lineSpacingMultiplier="1.4"
+                    android:layout_marginTop="12dp"
+                    android:visibility="gone"
+                    android:padding="10dp"
+                    android:background="@drawable/rounded_status_bg" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </LinearLayout>
+</ScrollView>

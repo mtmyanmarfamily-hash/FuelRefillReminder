@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/tvRefillHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="13sp"
+        android:textColor="#888888"
+        android:layout_marginBottom="16dp"
+        android:lineSpacingMultiplier="1.4" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="How many litres did you fill today?"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/etRefillLitres"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Litres filled (e.g. 15)"
+        android:inputType="numberDecimal"
+        android:textSize="18sp"
+        android:paddingVertical="8dp" />
+
+</LinearLayout>
