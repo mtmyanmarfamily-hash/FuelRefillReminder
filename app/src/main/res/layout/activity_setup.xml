@@ -12,90 +12,52 @@
         android:padding="32dp"
         android:gravity="center_horizontal">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="⛽"
-            android:textSize="64sp"
-            android:layout_marginBottom="16dp" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="⛽" android:textSize="64sp" android:layout_marginBottom="16dp"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Petrol Quota Setup"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="@color/accent_gold"
-            android:layout_marginBottom="8dp" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:text="ဆီကိုတာ Setup"
+            android:textSize="24sp" android:textStyle="bold"
+            android:textColor="@color/accent_gold" android:layout_marginBottom="8dp"/>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Enter your vehicle details and government-assigned fuel quota. You can update these later."
-            android:textSize="14sp"
-            android:textColor="@color/text_secondary"
-            android:gravity="center"
-            android:lineSpacingMultiplier="1.4"
-            android:layout_marginBottom="40dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="ကားနံပတ် နှင့် ကိုတာ ထည့်သွင်းပါ။\nစုံကား = စုံနေ့မှ ဖြည့်နိုင် | မကား = မနေ့မှ ဖြည့်နိုင်\n7 ရက်တွင်း အများဆုံး 2 ကြိမ် ဖြည့်နိုင်သည်။"
+            android:textSize="13sp" android:textColor="@color/text_secondary"
+            android:gravity="center" android:lineSpacingMultiplier="1.5"
+            android:layout_marginBottom="36dp"/>
 
-        <!-- Vehicle Name -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Vehicle Name / Plate Number"
-            android:textSize="13sp"
-            android:textColor="@color/text_secondary"
-            android:layout_marginBottom="6dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="ကားနံပတ် / Vehicle Name"
+            android:textSize="13sp" android:textColor="@color/text_secondary" android:layout_marginBottom="6dp"/>
 
-        <EditText
-            android:id="@+id/etVehicleName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="e.g. Toyota Vitz – 8B/1234"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_secondary"
-            android:backgroundTint="@color/accent_gold"
-            android:inputType="text"
-            android:paddingVertical="10dp"
-            android:layout_marginBottom="24dp" />
+        <EditText android:id="@+id/etVehicleName"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="ဥပမာ: 8A/1234 (Toyota Vitz)"
+            android:textColor="@color/text_primary" android:textColorHint="@color/text_secondary"
+            android:backgroundTint="@color/accent_gold" android:inputType="text"
+            android:paddingVertical="10dp" android:layout_marginBottom="8dp"/>
 
-        <!-- Quota -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Your 7-Day Quota (Litres)"
-            android:textSize="13sp"
-            android:textColor="@color/text_secondary"
-            android:layout_marginBottom="6dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:id="@+id/tvOddEvenHint"
+            android:textSize="12sp" android:textColor="@color/accent_gold"
+            android:layout_marginBottom="24dp"/>
 
-        <EditText
-            android:id="@+id/etTotalQuota"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="e.g. 30"
-            android:textColor="@color/text_primary"
-            android:textColorHint="@color/text_secondary"
-            android:backgroundTint="@color/accent_gold"
-            android:inputType="numberDecimal"
-            android:paddingVertical="10dp"
-            android:layout_marginBottom="12dp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="7-ရက် ကိုတာ (လီတာ) / Quota in Litres"
+            android:textSize="13sp" android:textColor="@color/text_secondary" android:layout_marginBottom="6dp"/>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="You may refuel up to 2 times within each 7-day window."
-            android:textSize="12sp"
-            android:textColor="@color/text_secondary"
-            android:layout_marginBottom="40dp" />
+        <EditText android:id="@+id/etTotalQuota"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:hint="ဥပမာ: 35"
+            android:textColor="@color/text_primary" android:textColorHint="@color/text_secondary"
+            android:backgroundTint="@color/accent_gold" android:inputType="numberDecimal"
+            android:paddingVertical="10dp" android:layout_marginBottom="36dp"/>
 
-        <Button
-            android:id="@+id/btnSaveSetup"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="Save &amp; Start"
-            android:textSize="16sp"
-            android:textColor="@color/bg_dark"
-            android:backgroundTint="@color/accent_gold" />
+        <Button android:id="@+id/btnSaveSetup"
+            android:layout_width="match_parent" android:layout_height="56dp"
+            android:text="သိမ်းဆည်းပြီး စတင်မည်"
+            android:textSize="16sp" android:textColor="@color/bg_dark"
+            android:backgroundTint="@color/accent_gold"/>
 
     </LinearLayout>
 </ScrollView>
