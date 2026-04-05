@@ -26,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     private QuotaManager qm;
     private TextView tvVehicleName, tvTotalQuota, tvUsedQuota, tvRemainingQuota;
     private TextView tvRefillsUsed, tvRefillsLeft, tvWindowStatus, tvChatAnswer;
+    private TextView tvDate1stRefill, tvDate2ndRefill, tvDateNewQuota;
     private Button btnRecordRefill, btnEditRefill, btnCheckStatus, btnTestNotif, btnSettings;
     private EditText etChatQuestion;
     private Button btnAsk;
@@ -69,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
         tvRefillsUsed    = findViewById(R.id.tvRefillsUsed);
         tvRefillsLeft    = findViewById(R.id.tvRefillsLeft);
         tvWindowStatus   = findViewById(R.id.tvWindowStatus);
+        tvDate1stRefill  = findViewById(R.id.tvDate1stRefill);
+        tvDate2ndRefill  = findViewById(R.id.tvDate2ndRefill);
+        tvDateNewQuota   = findViewById(R.id.tvDateNewQuota);
         tvChatAnswer     = findViewById(R.id.tvChatAnswer);
         btnRecordRefill  = findViewById(R.id.btnRecordRefill);
         btnEditRefill    = findViewById(R.id.btnEditRefill);
@@ -118,6 +122,11 @@ public class MainActivity extends AppCompatActivity {
         btnRecordRefill.setEnabled(canRecord);
         btnRecordRefill.setAlpha(canRecord ? 1f : 0.4f);
         btnEditRefill.setVisibility(qm.getRefillCount() > 0 ? View.VISIBLE : View.GONE);
+
+        // Dates
+        tvDate1stRefill.setText(qm.getFirstRefillDateStr());
+        tvDate2ndRefill.setText(qm.getSecondRefillDeadlineDateStr());
+        tvDateNewQuota.setText(qm.getNewQuotaDateStr());
     }
 
     // ─── Record new refill ────────────────────────────────────────────────────

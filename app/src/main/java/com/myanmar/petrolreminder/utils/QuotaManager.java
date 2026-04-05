@@ -273,6 +273,39 @@ public class QuotaManager {
         return getReminderTypeForTonight() != ReminderType.NONE;
     }
 
+    // ─── Date helpers ─────────────────────────────────────────────────────────
+
+    private static final java.text.SimpleDateFormat DATE_FMT =
+            new java.text.SimpleDateFormat("dd MMM yyyy (EEE)", java.util.Locale.ENGLISH);
+
+    /** Date of 1st refill, or "—" if none yet. */
+    public String getFirstRefillDateStr() {
+        long start = prefs.getLong(KEY_WINDOW_START_MS, 0L);
+        if (start == 0L) return "—";
+        return DATE_FMT.format(new java.util.Date(start));
+    }
+
+    /**
+     * Last day to use 2nd refill = day 7 of window (= reset day).
+     * Returns "—" if no window active or 2nd refill already used.
+     */
+    public String getSecondRefillDeadlineDateStr() {
+        long start = prefs.getLong(KEY_WINDOW_START_MS, 0L);
+        if (start == 0L) return "—";
+        if (prefs.getInt(KEY_REFILL_COUNT, 0) >= 2) return "✅ Done";
+        // Last day is day 7 = start + 6 days (inclusive)
+        long lastDay = start + 6L * 24 * 60 * 60 * 1000;
+        return DATE_FMT.format(new java.util.Date(lastDay));
+    }
+
+    /** Date when the new quota window starts = start + 7 days. */
+    public String getNewQuotaDateStr() {
+        long start = prefs.getLong(KEY_WINDOW_START_MS, 0L);
+        if (start == 0L) return "—";
+        long newQuotaDay = start + WINDOW_MS;
+        return DATE_FMT.format(new java.util.Date(newQuotaDay));
+    }
+
     // ─── Edit / correct last refill ──────────────────────────────────────────
 
     /** Returns the litres of the most recent refill, or 0 if none. */
