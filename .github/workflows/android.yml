@@ -20,16 +20,12 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
-
-      # CRITICAL FIX: Removes \r characters from Termux/Windows and sets executable bit
-      - name: Fix Line Endings and Permissions
-        run: |
-          sed -i 's/\r$//' gradlew
-          chmod +x gradlew
-
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+          # We don't cache gradle here because we are using the system version
+          
+      # We use 'gradle' (system-wide) instead of './gradlew' (local file)
+      # This completely bypasses "Permission Denied" or "Usage" errors.
+      - name: Build Debug APK with System Gradle
+        run: gradle assembleDebug --no-daemon --stacktrace
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
@@ -40,7 +36,7 @@ jobs:
 
       # Optional: Build Release APK
       - name: Build Release APK (unsigned)
-        run: ./gradlew assembleRelease --no-daemon
+        run: gradle assembleRelease --no-daemon
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
