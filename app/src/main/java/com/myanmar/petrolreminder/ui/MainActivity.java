@@ -151,7 +151,9 @@ public class MainActivity extends AppCompatActivity {
             tvDateChosen.setText("ရက်: ဒီနေ့ (default)");
             btnPickDate.setOnClickListener(v -> {
                 Calendar cal = Calendar.getInstance();
-                new DatePickerDialog(this, (dp, y, m, d) -> {
+                new DatePickerDialog(this,
+                    android.R.style.Theme_Holo_Light_Dialog,
+                    (dp, y, m, d) -> {
                     Calendar picked = Calendar.getInstance();
                     picked.set(y, m, d, 0, 0, 0);
                     picked.set(Calendar.MILLISECOND, 0);
@@ -267,10 +269,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void showTestNotifMenu() {
         String[] opts = {
-            "☀️ မနေ့ မွန်းတည့် notification",
-            "🌙 မနေ့ ညနေ notification",
-            "⛽ ဖြည့်နိုင်သောနေ့ မနက် notification",
-            "🆕 ကိုတာ အသစ် notification"
+            "☀️ မနေ့ မွန်းတည့် 12:00\n   (မနက်ဖြန် ဆီဖြည့်နိုင်ကြောင်း သတိပေးချိန်)",
+            "🌙 မနေ့ ညနေ 18:00\n   (မနက်ဖြန် ဆီဖြည့်နိုင်ကြောင်း သတိပေးချိန်)",
+            "⛽ ဖြည့်နိုင်သောနေ့ မနက် 7:00\n   (ဒီနေ့ ဆီဖြည့်ရမည့်နေ့ သတိပေးချိန်)",
+            "🆕 ကိုတာ အသစ် မနက်ဖြန် ရောက်မည်\n   (ကိုတာ အသစ် သတိပေးချိန်)"
         };
         new AlertDialog.Builder(this).setTitle("Notification စမ်းသပ်မည်")
                 .setItems(opts, (d, w) -> {
