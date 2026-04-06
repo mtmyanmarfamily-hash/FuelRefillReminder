@@ -58,7 +58,7 @@ public class SetupActivity extends AppCompatActivity {
 
             qm.saveSetup(vehicleName, quota);
             NotificationHelper.createNotificationChannel(this);
-            AlarmScheduler.scheduleDailyReminder(this);
+            AlarmScheduler.scheduleAllAlarms(this);
 
             // Detect odd/even for confirmation message
             boolean isEven = false;
