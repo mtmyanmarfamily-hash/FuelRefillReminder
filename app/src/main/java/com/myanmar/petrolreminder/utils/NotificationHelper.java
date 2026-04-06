@@ -16,58 +16,65 @@ import com.myanmar.petrolreminder.ui.MainActivity;
 
 public class NotificationHelper {
 
-    public static final String CHANNEL_ID   = "petrol_reminder_channel";
+    public static final String CHANNEL_ID  = "petrol_reminder_channel";
     public static final String CHANNEL_NAME = "ဆီကိုတာ သတိပေးချက်";
-    public static final int    NOTIF_ID_1   = 2001;
-    public static final int    NOTIF_ID_2   = 2002;
-    public static final int    NOTIF_ID_3   = 2003;
+    public static final int    NOTIF_ID_1  = 2001;
+    public static final int    NOTIF_ID_2  = 2002;
+    public static final int    NOTIF_ID_3  = 2003;
 
     public static void createNotificationChannel(Context context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel ch = new NotificationChannel(
                     CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
-            ch.setDescription("ဆီဖြည့်ရန် အချိန်မတိုင်မီ သတိပေးချက်များ");
+            ch.setDescription("ဆီဖြည့်ရန် အချိန်မတိုင်မီ သတိပေးချက်");
             ch.enableVibration(true);
             NotificationManager nm = context.getSystemService(NotificationManager.class);
             if (nm != null) nm.createNotificationChannel(ch);
         }
     }
 
-    /** မနေ့ noon / evening — "မနက်ဖြန် ဆီဖြည့်နိုင်မည်" */
+    /**
+     * မနေ့ noon / evening: "မနက်ဖြန် ဆီဖြည့်နိုင်မည်"
+     * 2 ကြိမ် ပြည့်ပြီဆို "မနက်ဖြန် ကိုတာ အသစ်" message
+     */
     public static void showDayBeforeNotification(Context context, QuotaManager qm, boolean isEvening) {
         String vehicle = qm.getVehicleName();
-        String vType   = qm.getVehicleTypeLabel();
-        float  total   = qm.getTotalQuota();
-        int    refLeft = qm.getRemainingRefills();
+        boolean bothDone = qm.getRefillCount() >= QuotaManager.MAX_REFILLS
+                           || qm.getRemainingLitres() <= 0.01f;
 
-        String title = isEvening
-            ? "🌙 မနက်ဖြန် ဆီဖြည့်နိုင်မည် — " + vehicle
-            : "☀️ မနက်ဖြန် ဆီဖြည့်နိုင်မည် — " + vehicle;
-        String body = vType + " | မနက်ဖြန် ဆီဖြည့်ရမည့်နေ့\n"
-            + String.format("ကိုတာ: %.1f L | ဖြည့်ခွင့်ကျန်: %d ကြိမ်\n", total, refLeft)
-            + "🆕 ကိုတာ အသစ်: " + qm.getNewQuotaDateStr();
+        String title, body;
+        if (bothDone) {
+            // New quota tomorrow
+            title = (isEvening ? "🌙" : "☀️") + " မနက်ဖြန် ကိုတာ အသစ်! — " + vehicle;
+            body  = "မနက်ဖြန် ဆီကိုတာ အသစ် " + String.format("%.1f", qm.getTotalQuota())
+                  + " L စတင်ပါပြီ။\nအသစ် စထည့် လို့ရပါပီ ✅\n"
+                  + "🆕 " + qm.getNewQuotaDateStr();
+        } else {
+            // Still has refills
+            title = (isEvening ? "🌙" : "☀️") + " မနက်ဖြန် ဆီဖြည့်နိုင်မည် — " + vehicle;
+            body  = qm.getVehicleTypeLabel() + " — ဆီမဖြည့်မှီ တစ်ရက်အလို အကြောင်းကြားချက်\n"
+                  + String.format("ကျန်ကိုတာ: %.1f L  |  ဖြည့်ခွင့်ကျန်: %d ကြိမ်\n",
+                        qm.getRemainingLitres(), qm.getRemainingRefills())
+                  + "⛽ ဖြည့်နိုင်သောနေ့: " + qm.getRemainingEligibleDaysStr();
+        }
         post(context, title, body, isEvening ? NOTIF_ID_2 : NOTIF_ID_1);
     }
 
-    /** ဆီဖြည့်နိုင်သောနေ့ မနက် ၇ နာရီ */
+    /**
+     * ဖြည့်နိုင်သောနေ့ မနက် ၇ နာရီ:
+     * "ဒီနေ့ ဆီဖြည့်ရမည့်နေ့ — ကျန်ကိုတာ X L ဖြည့်နိုင်သည်"
+     */
     public static void showRefillDayMorningNotification(Context context, QuotaManager qm) {
         String vehicle = qm.getVehicleName();
-        String vType   = qm.getVehicleTypeLabel();
         float  rem     = qm.getRemainingLitres();
         int    refLeft = qm.getRemainingRefills();
 
         String title = "⛽ ဒီနေ့ ဆီဖြည့်နိုင်သည်! — " + vehicle;
-        String body  = vType + " — ဒီနေ့ ဆီဖြည့်ရမည့်နေ့ဖြစ်သည်\n"
-            + String.format("ကျန်ကိုတာ: %.1f L | ဖြည့်ခွင့်: %d ကြိမ်\n", rem, refLeft)
-            + "🆕 ကိုတာ အသစ်: " + qm.getNewQuotaDateStr();
+        String body  = qm.getVehicleTypeLabel() + " — ဒီနေ့ ဆီဖြည့်ရမည့်နေ့ဖြစ်သည်\n"
+                     + String.format("ကျန်ကိုတာ: %.1f L ဖြည့်နိုင်သည်\n", rem)
+                     + String.format("ဖြည့်ခွင့်ကျန်: %d ကြိမ်\n", refLeft)
+                     + "⛽ ကျန်ဖြည့်နိုင်သောနေ့: " + qm.getRemainingEligibleDaysStr();
         post(context, title, body, NOTIF_ID_3);
-    }
-
-    /** New quota tomorrow (existing) */
-    public static void showNewQuotaNotification(Context context, QuotaManager qm) {
-        String title = "🆕 မနက်ဖြန် ကိုတာ အသစ်! — " + qm.getVehicleName();
-        String body  = String.format("မနက်ဖြန် ဆီကိုတာ အသစ် စတင်ပါပြီ။\n%.1f L ပြည့်ဝပါသည်။\nအသစ် စထည့် လို့ရပါပီ ✅", qm.getTotalQuota());
-        post(context, title, body, NOTIF_ID_1);
     }
 
     private static void post(Context context, String title, String body, int notifId) {
@@ -90,7 +97,7 @@ public class NotificationHelper {
     }
 
     // Test helpers
-    public static void fireTestNewQuotaNotification(Context context, QuotaManager qm)       { showNewQuotaNotification(context, qm); }
-    public static void fireTestWithinWindowNotification(Context context, QuotaManager qm)    { showDayBeforeNotification(context, qm, true); }
-    public static void fireTestMorningNotification(Context context, QuotaManager qm)         { showRefillDayMorningNotification(context, qm); }
+    public static void fireTestNewQuotaNotification(Context context, QuotaManager qm)    { showDayBeforeNotification(context, qm, true); }
+    public static void fireTestWithinWindowNotification(Context context, QuotaManager qm) { showDayBeforeNotification(context, qm, false); }
+    public static void fireTestMorningNotification(Context context, QuotaManager qm)      { showRefillDayMorningNotification(context, qm); }
 }

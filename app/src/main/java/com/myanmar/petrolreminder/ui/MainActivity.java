@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         tvDate1stRefill.setText(qm.getFirstRefillDateStr());
-        tvDate2ndRefill.setText(qm.getSecondRefillDeadlineDateStr());
+        tvDate2ndRefill.setText(qm.getRemainingEligibleDaysStr());
         tvDateNewQuota.setText(qm.getNewQuotaDateStr());
 
         boolean canRecord = qm.getRemainingRefills() > 0 && qm.getRemainingLitres() > 0.01f;
@@ -269,8 +269,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void showTestNotifMenu() {
         String[] opts = {
-            "☀️ မနေ့ မွန်းတည့် 12:00\n   (ဆီမဖြည့်မှီ တစ်ရက်အလို အကြောင်းကြားချက်)",
-            "🌙 မနေ့ ညနေ 18:00\n   (ဆီမဖြည့်မှီ တစ်ရက်အလို အကြောင်းကြားချက်)",
+            "☀️ မနေ့ မွန်းတည့် 12:00\n   (မနက်ဖြန် ဆီဖြည့်နိုင်ကြောင်း သတိပေးချိန်)",
+            "🌙 မနေ့ ညနေ 18:00\n   (မနက်ဖြန် ဆီဖြည့်နိုင်ကြောင်း သတိပေးချိန်)",
             "⛽ ဖြည့်နိုင်သောနေ့ မနက် 7:00\n   (ဒီနေ့ ဆီဖြည့်ရမည့်နေ့ သတိပေးချိန်)",
             "🆕 ကိုတာ အသစ် မနက်ဖြန် ရောက်မည်\n   (ကိုတာ အသစ် သတိပေးချိန်)"
         };
