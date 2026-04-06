@@ -15,7 +15,7 @@ public class BootReceiver extends BroadcastReceiver {
             Intent.ACTION_MY_PACKAGE_REPLACED.equals(action)) {
             QuotaManager qm = new QuotaManager(context);
             if (qm.isSetupDone()) {
-                AlarmScheduler.scheduleDailyReminder(context);
+                AlarmScheduler.scheduleAllAlarms(context);
             }
         }
     }
