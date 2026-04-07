@@ -333,7 +333,6 @@ public class QuotaManager {
         ed.apply();
     }
 
-    public enum RefillResult { SUCCESS, ALREADY_USED_MAX, EXCEEDS_QUOTA }
     public static final String KEY_REFILL_2_DATE_MS = "refill_2_date_ms";
 
     public void setRefill2Date(long ms) {
