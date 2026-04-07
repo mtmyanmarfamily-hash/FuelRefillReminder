@@ -136,33 +136,29 @@ public class QuotaManager {
         List<Long> result = new ArrayList<>();
         checkAndResetExpiredWindow();
 
-        // 2 ကြိမ် ပြည့်ပြီ သို့မဟုတ် ကိုတာကုန်ပြီ — ထပ်ဖြည့်မရ
         if (getRefillCount() >= MAX_REFILLS) return result;
         if (getRemainingLitres() <= 0.01f)   return result;
 
-        long start = prefs.getLong(KEY_WINDOW_START_MS, 0L);
+        long start     = prefs.getLong(KEY_WINDOW_START_MS, 0L);
         long windowEnd = start == 0L ? Long.MAX_VALUE : start + WINDOW_MS;
-
         boolean needEven = isEvenVehicle();
-        long now = System.currentTimeMillis();
 
-        // ပထမ ဖြည့်မှတ်တမ်းတင်ပြီးဆို start+1day မှ၊ မတင်ရသေး = ယနေ့မှ
-        long searchFrom;
-        if (start == 0L) {
-            searchFrom = now;
-        } else {
-            // ပထမ ဖြည့်ပြီးဆို start+1 day နှင့် now ထဲမှ ကြီးသောဘက်
-            searchFrom = Math.max(start + 24L*60*60*1000, now);
-        }
-
+        // Start from TODAY midnight — include today if it is an eligible day
         Calendar cal = Calendar.getInstance();
-        cal.setTimeInMillis(searchFrom);
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
-        // If midnight of this day is already past searchFrom, stay; else advance
-        if (cal.getTimeInMillis() < searchFrom) cal.add(Calendar.DAY_OF_YEAR, 1);
+
+        // If window started TODAY (first refill was today), skip today for 2nd refill
+        // because you cannot fill the same day twice
+        if (start != 0L) {
+            Calendar startCal = Calendar.getInstance();
+            startCal.setTimeInMillis(start);
+            boolean startedToday = (startCal.get(Calendar.YEAR)        == cal.get(Calendar.YEAR)
+                                 && startCal.get(Calendar.DAY_OF_YEAR) == cal.get(Calendar.DAY_OF_YEAR));
+            if (startedToday) cal.add(Calendar.DAY_OF_YEAR, 1);
+        }
 
         for (int i = 0; i < 8; i++) {
             long t = cal.getTimeInMillis();
@@ -338,4 +334,18 @@ public class QuotaManager {
     }
 
     public enum RefillResult { SUCCESS, ALREADY_USED_MAX, EXCEEDS_QUOTA }
+}
+
+// Note: setRefill2Date added via append - must be before last 
+    public static final String KEY_REFILL_2_DATE_MS = "refill_2_date_ms";
+
+    /** Store the date user chose for 2nd refill (for display purposes) */
+    public void setRefill2Date(long ms) {
+        prefs.edit().putLong(KEY_REFILL_2_DATE_MS, ms).apply();
+    }
+
+    public String getRefill2DateStr() {
+        long ms = prefs.getLong(KEY_REFILL_2_DATE_MS, 0L);
+        return ms == 0L ? "" : DATE_FMT.format(new java.util.Date(ms));
+    }
 }

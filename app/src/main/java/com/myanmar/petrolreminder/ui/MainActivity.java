@@ -135,25 +135,25 @@ public class MainActivity extends AppCompatActivity {
         boolean isFirstRefill = (qm.getRefillCount() == 0);
 
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_refill, null);
-        EditText etLitres   = dialogView.findViewById(R.id.etRefillLitres);
-        TextView tvHint     = dialogView.findViewById(R.id.tvRefillHint);
-        Button   btnPickDate = dialogView.findViewById(R.id.btnPickDate);
+        EditText etLitres     = dialogView.findViewById(R.id.etRefillLitres);
+        TextView tvHint       = dialogView.findViewById(R.id.tvRefillHint);
+        Button   btnPickDate  = dialogView.findViewById(R.id.btnPickDate);
         TextView tvDateChosen = dialogView.findViewById(R.id.tvDateChosen);
 
         tvHint.setText(String.format("ကျန်ကိုတာ: %.1f L  |  ဖြည့်ခွင့်ကျန်: %d / 2 ကြိမ်",
                 qm.getRemainingLitres(), qm.getRemainingRefills()));
 
-        // Date picker only for first refill
+        // Date picker available for BOTH first and second refill
         final long[] chosenDateMs = {0L};
-        if (isFirstRefill) {
-            btnPickDate.setVisibility(View.VISIBLE);
-            tvDateChosen.setVisibility(View.VISIBLE);
-            tvDateChosen.setText("ရက်: ဒီနေ့ (default)");
-            btnPickDate.setOnClickListener(v -> {
-                Calendar cal = Calendar.getInstance();
-                new DatePickerDialog(this,
-                    android.R.style.Theme_Holo_Light_Dialog,
-                    (dp, y, m, d) -> {
+        btnPickDate.setVisibility(View.VISIBLE);
+        tvDateChosen.setVisibility(View.VISIBLE);
+        tvDateChosen.setText("ရက်: ဒီနေ့ (default)");
+
+        btnPickDate.setOnClickListener(v -> {
+            Calendar cal = Calendar.getInstance();
+            new DatePickerDialog(this,
+                android.R.style.Theme_Holo_Light_Dialog,
+                (dp, y, m, d) -> {
                     Calendar picked = Calendar.getInstance();
                     picked.set(y, m, d, 0, 0, 0);
                     picked.set(Calendar.MILLISECOND, 0);
@@ -161,11 +161,7 @@ public class MainActivity extends AppCompatActivity {
                     tvDateChosen.setText("ရက်: " + QuotaManager.DATE_FMT.format(picked.getTime()));
                 }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH))
                 .show();
-            });
-        } else {
-            btnPickDate.setVisibility(View.GONE);
-            tvDateChosen.setVisibility(View.GONE);
-        }
+        });
 
         new AlertDialog.Builder(this)
                 .setTitle(isFirstRefill ? "ပထမ ဆီဖြည့်မှတ်တမ်း" : "ဒုတိယ ဆီဖြည့်မှတ်တမ်း")
@@ -177,9 +173,13 @@ public class MainActivity extends AppCompatActivity {
                     try { litres = Float.parseFloat(s); if (litres <= 0) throw new NumberFormatException(); }
                     catch (NumberFormatException e) { Toast.makeText(this, "ကိန်းဂဏန်း မှားသည်", Toast.LENGTH_SHORT).show(); return; }
 
-                    // Set chosen date before recording
+                    // Set chosen date for first refill (window start)
                     if (isFirstRefill && chosenDateMs[0] > 0) {
                         qm.setWindowStartDate(chosenDateMs[0]);
+                    }
+                    // Set chosen date for second refill — store as refill 2 date
+                    if (!isFirstRefill && chosenDateMs[0] > 0) {
+                        qm.setRefill2Date(chosenDateMs[0]);
                     }
 
                     switch (qm.recordRefill(litres)) {
