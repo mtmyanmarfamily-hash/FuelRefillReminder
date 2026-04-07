@@ -76,4 +76,8 @@ public class AlarmScheduler {
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         am.cancel(pi);
     }
+    public static void scheduleDailyReminder(android.content.Context context) {
+        // TODO: implement reminder logic
+    }
+
 }
