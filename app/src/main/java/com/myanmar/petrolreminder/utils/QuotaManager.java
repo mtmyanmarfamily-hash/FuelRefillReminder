@@ -261,11 +261,25 @@ public class QuotaManager {
 
     public ReminderType getReminderTypeForTonight() {
         checkAndResetExpiredWindow();
-        if (getRefillCount()>=MAX_REFILLS || getRemainingLitres()<=0.01f) {
-            return isTomorrow(getNextEligibleDayMs()) ? ReminderType.NEW_QUOTA_AVAILABLE : ReminderType.NONE;
+
+        if (getRefillCount() >= MAX_REFILLS || getRemainingLitres() <= 0.01f) {
+            return isTomorrow(getNextEligibleDayMs())
+                    ? ReminderType.NEW_QUOTA_AVAILABLE
+                    : ReminderType.NONE;
         }
-        for (long d : getRemainingEligibleDaysInWindow())
-            if (isTomorrow(d)) return ReminderType.REFILL_DAY;
+
+        // 🔥 FIX: direct tomorrow check
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_YEAR, 1);
+        int tomorrowDay = cal.get(Calendar.DAY_OF_MONTH);
+
+        boolean needEven = isEvenVehicle();
+        boolean isTomorrowEligible = (tomorrowDay % 2 == 0) == needEven;
+
+        if (isTomorrowEligible) {
+            return ReminderType.REFILL_DAY;
+        }
+
         return ReminderType.NONE;
     }
 
