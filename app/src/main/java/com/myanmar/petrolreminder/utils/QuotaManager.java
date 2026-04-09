@@ -1,44 +1,89 @@
-package com.myanmar.petrolreminder;
+package com.myanmar.petrolreminder.utils;
 
 import android.content.Context;
-import java.util.Calendar;
+import android.content.SharedPreferences;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+/**
+ * Per-car quota manager. Each car has its own SharedPreferences file "car_<carId>".
+ * Also supports legacy single-car mode (carId = "petrol_prefs").
+ */
 public class QuotaManager {
 
-    public enum ReminderType {
-        MORNING,
-        EVENING,
-        TONIGHT
+    public static final String KEY_TOTAL_QUOTA      = "total_quota_litres";
+    public static final String KEY_VEHICLE_NAME     = "vehicle_name";
+    public static final String KEY_SETUP_DONE       = "setup_done";
+    public static final String KEY_WINDOW_START_MS  = "window_start_ms";
+    public static final String KEY_REFILL_COUNT     = "refill_count";
+    public static final String KEY_REFILL_1_LITRES  = "refill_1_litres";
+    public static final String KEY_REFILL_2_LITRES  = "refill_2_litres";
+    public static final String KEY_REFILL_2_DATE_MS = "refill_2_date_ms";
+
+    public static final String KEY_NOTIF_DAY_BEFORE_NOON    = "notif_day_before_noon";
+    public static final String KEY_NOTIF_DAY_BEFORE_EVENING = "notif_day_before_evening";
+    public static final String KEY_NOTIF_REFILL_DAY_MORNING = "notif_refill_day_morning";
+
+    public static final int  MAX_REFILLS = 2;
+    public static final int  WINDOW_DAYS = 7;
+    public static final long WINDOW_MS   = (long) WINDOW_DAYS * 24 * 60 * 60 * 1000;
+
+    public static final SimpleDateFormat DATE_FMT   = new SimpleDateFormat("dd MMM yyyy (EEE)", Locale.ENGLISH);
+    public static final SimpleDateFormat DATE_SHORT  = new SimpleDateFormat("dd MMM (EEE)", Locale.ENGLISH);
+
+    private final SharedPreferences prefs;
+
+    /** Legacy constructor — uses old single prefs file */
+    public QuotaManager(Context ctx) {
+        prefs = ctx.getApplicationContext()
+                   .getSharedPreferences("petrol_prefs", Context.MODE_PRIVATE);
     }
 
-    private Context context;
-    private boolean notifRefillDayMorning = true;   // user preference
-    private boolean notifRefillDayEvening = true;   // user preference
-    private boolean notifTonight = true;            // user preference
-    private int refillDayOfMonth = 10;             // example: 10th of each month
-    private int estimatedQueueMinutes = 30;        // example
-
-    public QuotaManager(Context context) {
-        this.context = context;
+    /** Multi-car constructor — uses per-car prefs file */
+    public QuotaManager(Context ctx, String carId) {
+        prefs = ctx.getApplicationContext()
+                   .getSharedPreferences("car_" + carId, Context.MODE_PRIVATE);
     }
 
-    /** ------------------- Preference Checks ------------------- */
+    // ─── Setup ───────────────────────────────────────────────────────────────
 
-    public boolean isNotifRefillDayMorningEnabled() {
-        return notifRefillDayMorning;
+    public void saveSetup(String name, float quota) {
+        prefs.edit().putString(KEY_VEHICLE_NAME, name)
+             .putFloat(KEY_TOTAL_QUOTA, quota)
+             .putBoolean(KEY_SETUP_DONE, true).apply();
     }
 
-    public boolean isNotifRefillDayEveningEnabled() {
-        return notifRefillDayEvening;
+    public void updateTotalQuota(String name, float quota) {
+        prefs.edit().putString(KEY_VEHICLE_NAME, name)
+             .putFloat(KEY_TOTAL_QUOTA, quota).apply();
     }
 
-    public boolean isNotifTonightEnabled() {
-        return notifTonight;
+    public boolean isSetupDone()    { return prefs.getBoolean(KEY_SETUP_DONE, false); }
+    public String  getVehicleName() { return prefs.getString(KEY_VEHICLE_NAME, "My Vehicle"); }
+    public float   getTotalQuota()  { return prefs.getFloat(KEY_TOTAL_QUOTA, 0f); }
+
+    // ─── Notification toggles ─────────────────────────────────────────────────
+
+    public boolean isNotifDayBeforeNoonEnabled()    { return prefs.getBoolean(KEY_NOTIF_DAY_BEFORE_NOON, true); }
+    public boolean isNotifDayBeforeEveningEnabled() { return prefs.getBoolean(KEY_NOTIF_DAY_BEFORE_EVENING, true); }
+    public boolean isNotifRefillDayMorningEnabled() { return prefs.getBoolean(KEY_NOTIF_REFILL_DAY_MORNING, true); }
+    public void setNotifDayBeforeNoon(boolean v)    { prefs.edit().putBoolean(KEY_NOTIF_DAY_BEFORE_NOON, v).apply(); }
+    public void setNotifDayBeforeEvening(boolean v) { prefs.edit().putBoolean(KEY_NOTIF_DAY_BEFORE_EVENING, v).apply(); }
+    public void setNotifRefillDayMorning(boolean v) { prefs.edit().putBoolean(KEY_NOTIF_REFILL_DAY_MORNING, v).apply(); }
+
+    // ─── Odd / Even ───────────────────────────────────────────────────────────
+
+    public boolean isEvenVehicle() {
+        for (char c : getVehicleName().toCharArray())
+            if (Character.isDigit(c)) return Character.getNumericValue(c) % 2 == 0;
+        return true;
     }
 
-<<<<<<< HEAD
-    /** ------------------- Refill Day Logic ------------------- */
-=======
     public String getVehicleTypeLabel() { return isEvenVehicle() ? "စုံကား" : "မကား"; }
 
     // ─── Window ───────────────────────────────────────────────────────────────
@@ -217,22 +262,17 @@ public class QuotaManager {
     public ReminderType getReminderTypeForTonight() {
         checkAndResetExpiredWindow();
 
-        // Both refills done or quota used up — check if new quota day is tomorrow
         if (getRefillCount() >= MAX_REFILLS || getRemainingLitres() <= 0.01f) {
             long nextQuota = getNextEligibleDayMs();
             return isTomorrow(nextQuota) ? ReminderType.NEW_QUOTA_AVAILABLE : ReminderType.NONE;
         }
 
-        // Window active, still has refills — check eligible days list
         if (isWindowActive()) {
             for (long d : getRemainingEligibleDaysInWindow())
                 if (isTomorrow(d)) return ReminderType.REFILL_DAY;
             return ReminderType.NONE;
         }
 
-        // No window yet (never filled) — find next eligible day from tomorrow
-        // e.g. today is odd day, odd car → tomorrow is even → no notify
-        //      today is even day, odd car → tomorrow is odd → notify!
         long nextDay = findNextEligibleDay(
                 System.currentTimeMillis() + 24L * 60 * 60 * 1000,
                 Long.MAX_VALUE);
@@ -240,64 +280,52 @@ public class QuotaManager {
     }
 
     public boolean shouldRemindTonight()    { return getReminderTypeForTonight() != ReminderType.NONE; }
->>>>>>> a9c4ddf (Fix notification: correct odd/even day reminder logic)
 
     public boolean isTodayEligibleRefillDay() {
-        Calendar c = Calendar.getInstance();
-        int today = c.get(Calendar.DAY_OF_MONTH);
-        return today == refillDayOfMonth;
+        if (getRefillCount()>=MAX_REFILLS || getRemainingLitres()<=0.01f) return false;
+        boolean needEven = isEvenVehicle();
+        return (Calendar.getInstance().get(Calendar.DAY_OF_MONTH)%2==0) == needEven;
     }
 
-    public boolean isTomorrowEligibleRefillDay() {
-        Calendar c = Calendar.getInstance();
-        c.add(Calendar.DAY_OF_MONTH, 1);
-        int tomorrow = c.get(Calendar.DAY_OF_MONTH);
-        return tomorrow == refillDayOfMonth;
+    private boolean isTomorrow(long ms) {
+        if (ms<0) return false;
+        Calendar tom=Calendar.getInstance(); tom.add(Calendar.DAY_OF_YEAR,1);
+        Calendar tgt=Calendar.getInstance(); tgt.setTimeInMillis(ms);
+        return tom.get(Calendar.YEAR)==tgt.get(Calendar.YEAR)
+            && tom.get(Calendar.DAY_OF_YEAR)==tgt.get(Calendar.DAY_OF_YEAR);
     }
 
-    public ReminderType getReminderTypeForTonight() {
-        return ReminderType.TONIGHT;
+    // ─── Edit refill ──────────────────────────────────────────────────────────
+
+    public float getLastRefillLitres() {
+        int c=prefs.getInt(KEY_REFILL_COUNT,0);
+        if (c==2) return prefs.getFloat(KEY_REFILL_2_LITRES,0f);
+        if (c==1) return prefs.getFloat(KEY_REFILL_1_LITRES,0f);
+        return 0f;
     }
 
-    /** ------------------- Refuel Status Message ------------------- */
+    public int getLastRefillNumber() { return prefs.getInt(KEY_REFILL_COUNT,0); }
 
-    public String getRefuelStatusMessage() {
-        if (isTodayEligibleRefillDay()) {
-            return "Today is your refill day! Estimated queue: " + estimatedQueueMinutes + " mins.";
-        } else if (isTomorrowEligibleRefillDay()) {
-            return "Tomorrow is your refill day. Prepare your vehicle.";
-        } else {
-            return "Next refill day is on " + refillDayOfMonth + " of the month.";
-        }
+    public boolean editLastRefill(float newLitres) {
+        int count=prefs.getInt(KEY_REFILL_COUNT,0);
+        if (count==0) return false;
+        float other = count==2 ? prefs.getFloat(KEY_REFILL_1_LITRES,0f) : 0f;
+        if (newLitres>(getTotalQuota()-other)+0.05f) return false;
+        SharedPreferences.Editor ed=prefs.edit();
+        if (count==1) ed.putFloat(KEY_REFILL_1_LITRES,newLitres);
+        else ed.putFloat(KEY_REFILL_2_LITRES,newLitres);
+        ed.apply(); return true;
     }
 
-    /** ------------------- Estimated Queue ------------------- */
-
-    public int getEstimatedQueueMinutes() {
-        return estimatedQueueMinutes;
+    public void deleteLastRefill() {
+        int count=prefs.getInt(KEY_REFILL_COUNT,0);
+        if (count==0) return;
+        SharedPreferences.Editor ed=prefs.edit();
+        if (count==1) ed.remove(KEY_WINDOW_START_MS).remove(KEY_REFILL_COUNT)
+                        .remove(KEY_REFILL_1_LITRES).remove(KEY_REFILL_2_LITRES).remove(KEY_REFILL_2_DATE_MS);
+        else ed.remove(KEY_REFILL_2_LITRES).remove(KEY_REFILL_2_DATE_MS).putInt(KEY_REFILL_COUNT,1);
+        ed.apply();
     }
 
-    public void setEstimatedQueueMinutes(int minutes) {
-        estimatedQueueMinutes = minutes;
-    }
-
-    /** ------------------- Refill Day Setter (Optional) ------------------- */
-
-    public void setRefillDayOfMonth(int day) {
-        refillDayOfMonth = day;
-    }
-
-    /** ------------------- Notification Preference Setter ------------------- */
-
-    public void setNotifRefillDayMorning(boolean enabled) {
-        notifRefillDayMorning = enabled;
-    }
-
-    public void setNotifRefillDayEvening(boolean enabled) {
-        notifRefillDayEvening = enabled;
-    }
-
-    public void setNotifTonight(boolean enabled) {
-        notifTonight = enabled;
-    }
+    public enum RefillResult { SUCCESS, ALREADY_USED_MAX, EXCEEDS_QUOTA }
 }
