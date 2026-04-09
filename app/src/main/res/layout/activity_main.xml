@@ -10,25 +10,41 @@
         <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
             android:text="⛽ ဆီကိုတာ စာရင်း"
             android:textSize="26sp" android:textStyle="bold"
-            android:textColor="@color/accent_gold" android:layout_marginBottom="4dp"/>
+            android:textColor="@color/accent_gold" android:layout_marginBottom="10dp"/>
 
+        <!-- Car selector row -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="horizontal" android:layout_marginBottom="16dp">
-            <TextView android:id="@+id/tvVehicleName"
-                android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-                android:textSize="15sp" android:textColor="@color/text_secondary"/>
+            android:orientation="horizontal" android:layout_marginBottom="6dp"
+            android:gravity="center_vertical">
+
+            <Spinner android:id="@+id/spinnerCars"
+                android:layout_width="0dp" android:layout_height="44dp"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_status_bg"
+                android:paddingHorizontal="10dp"
+                android:layout_marginEnd="8dp"/>
+
             <TextView android:id="@+id/tvVehicleType"
                 android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:textSize="13sp" android:textStyle="bold"
-                android:paddingHorizontal="10dp" android:paddingVertical="3dp"
-                android:background="@drawable/rounded_status_bg" android:textColor="@color/accent_gold"/>
+                android:paddingHorizontal="10dp" android:paddingVertical="4dp"
+                android:background="@drawable/rounded_status_bg"
+                android:textColor="@color/accent_gold"
+                android:layout_marginEnd="8dp"/>
+
+            <Button android:id="@+id/btnAddCar"
+                android:layout_width="wrap_content" android:layout_height="36dp"
+                android:text="+ ကား"
+                android:textSize="12sp" android:textColor="@color/bg_dark"
+                android:backgroundTint="@color/accent_gold"
+                android:paddingHorizontal="12dp"/>
         </LinearLayout>
 
         <!-- Status Card -->
         <androidx.cardview.widget.CardView xmlns:app="http://schemas.android.com/apk/res-auto"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             app:cardBackgroundColor="@color/card_bg" app:cardCornerRadius="12dp"
-            app:cardElevation="4dp" android:layout_marginBottom="16dp">
+            app:cardElevation="4dp" android:layout_marginBottom="16dp" android:layout_marginTop="8dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                 android:orientation="vertical" android:padding="16dp">
@@ -38,7 +54,6 @@
                     android:textSize="11sp" android:textColor="@color/text_secondary"
                     android:letterSpacing="0.1" android:layout_marginBottom="12dp"/>
 
-                <!-- Quota row -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="horizontal" android:layout_marginBottom="8dp">
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
@@ -57,7 +72,6 @@
 
                 <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginVertical="8dp"/>
 
-                <!-- Refills row -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="horizontal" android:layout_marginBottom="12dp">
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
@@ -74,22 +88,20 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Window status -->
                 <TextView android:id="@+id/tvWindowStatus"
                     android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:textSize="13sp" android:textStyle="bold" android:padding="8dp"
                     android:background="@drawable/rounded_status_bg" android:gravity="center"
                     android:layout_marginBottom="16dp"/>
 
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/divider" android:layout_marginBottom="14dp"/>
+                <View android:layout_width="match_parent" android:layout_height="1dp"
+                    android:background="@color/divider" android:layout_marginBottom="14dp"/>
 
-                <!-- Important Dates — BIG TEXT -->
                 <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:text="အရေးကြီးသော ရက်စွဲများ"
                     android:textSize="11sp" android:textColor="@color/text_secondary"
                     android:letterSpacing="0.1" android:layout_marginBottom="12dp"/>
 
-                <!-- 1st refill date -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="vertical" android:layout_marginBottom="12dp">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -100,19 +112,17 @@
                         android:textSize="18sp" android:textStyle="bold" android:textColor="@color/text_primary"/>
                 </LinearLayout>
 
-                <!-- 2nd refill date -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="vertical" android:layout_marginBottom="12dp">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:text="⛽ ဒုတိယ ဖြည့်နိုင်သောနေ့များ"
                         android:textSize="12sp" android:textColor="@color/text_secondary"/>
                     <TextView android:id="@+id/tvDate2ndRefill"
-                        android:maxLines="3"
                         android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:textSize="18sp" android:textStyle="bold" android:textColor="@color/status_orange"/>
+                        android:textSize="15sp" android:textStyle="bold"
+                        android:textColor="@color/status_orange" android:maxLines="3"/>
                 </LinearLayout>
 
-                <!-- New quota date -->
                 <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
                     android:orientation="vertical">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
@@ -148,7 +158,7 @@
 
         <Button android:id="@+id/btnNotifSettings"
             android:layout_width="match_parent" android:layout_height="46dp"
-            android:text="🔔  Notification အချိန် On/Off"
+            android:text="🔔  Notification On/Off"
             android:textSize="14sp" android:textColor="@color/status_green"
             android:backgroundTint="@color/card_bg" android:layout_marginBottom="10dp"/>
 
@@ -160,7 +170,7 @@
 
         <Button android:id="@+id/btnSettings"
             android:layout_width="match_parent" android:layout_height="44dp"
-            android:text="⚙️  ကား / ကိုတာ ပြင်ဆင်မည်"
+            android:text="⚙️  ကား / ကိုတာ ပြင်ဆင် / ဖျက်မည်"
             android:textSize="14sp" android:textColor="@color/text_secondary"
             android:backgroundTint="@color/bg_dark" android:layout_marginBottom="16dp"/>
 

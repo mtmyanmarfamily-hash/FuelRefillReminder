@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.myanmar.petrolreminder.utils.AlarmScheduler;
-import com.myanmar.petrolreminder.utils.QuotaManager;
+import com.myanmar.petrolreminder.utils.CarStore;
 
 public class BootReceiver extends BroadcastReceiver {
     @Override
@@ -13,10 +13,8 @@ public class BootReceiver extends BroadcastReceiver {
         String action = intent.getAction();
         if (Intent.ACTION_BOOT_COMPLETED.equals(action) ||
             Intent.ACTION_MY_PACKAGE_REPLACED.equals(action)) {
-            QuotaManager qm = new QuotaManager(context);
-            if (qm.isSetupDone()) {
-                AlarmScheduler.scheduleDailyReminder(context);
-            }
+            CarStore cs = new CarStore(context);
+            if (cs.hasCars()) AlarmScheduler.scheduleAllAlarms(context);
         }
     }
 }

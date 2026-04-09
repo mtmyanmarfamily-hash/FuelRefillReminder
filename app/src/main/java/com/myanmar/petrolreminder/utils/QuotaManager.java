@@ -10,9 +10,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Per-car quota manager. Each car has its own SharedPreferences file "car_<carId>".
+ * Also supports legacy single-car mode (carId = "petrol_prefs").
+ */
 public class QuotaManager {
-
-    private static final String PREFS_NAME = "petrol_prefs";
 
     public static final String KEY_TOTAL_QUOTA      = "total_quota_litres";
     public static final String KEY_VEHICLE_NAME     = "vehicle_name";
@@ -21,6 +23,7 @@ public class QuotaManager {
     public static final String KEY_REFILL_COUNT     = "refill_count";
     public static final String KEY_REFILL_1_LITRES  = "refill_1_litres";
     public static final String KEY_REFILL_2_LITRES  = "refill_2_litres";
+    public static final String KEY_REFILL_2_DATE_MS = "refill_2_date_ms";
 
     public static final String KEY_NOTIF_DAY_BEFORE_NOON    = "notif_day_before_noon";
     public static final String KEY_NOTIF_DAY_BEFORE_EVENING = "notif_day_before_evening";
@@ -35,8 +38,16 @@ public class QuotaManager {
 
     private final SharedPreferences prefs;
 
+    /** Legacy constructor — uses old single prefs file */
     public QuotaManager(Context ctx) {
-        prefs = ctx.getApplicationContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs = ctx.getApplicationContext()
+                   .getSharedPreferences("petrol_prefs", Context.MODE_PRIVATE);
+    }
+
+    /** Multi-car constructor — uses per-car prefs file */
+    public QuotaManager(Context ctx, String carId) {
+        prefs = ctx.getApplicationContext()
+                   .getSharedPreferences("car_" + carId, Context.MODE_PRIVATE);
     }
 
     // ─── Setup ───────────────────────────────────────────────────────────────
@@ -45,6 +56,11 @@ public class QuotaManager {
         prefs.edit().putString(KEY_VEHICLE_NAME, name)
              .putFloat(KEY_TOTAL_QUOTA, quota)
              .putBoolean(KEY_SETUP_DONE, true).apply();
+    }
+
+    public void updateTotalQuota(String name, float quota) {
+        prefs.edit().putString(KEY_VEHICLE_NAME, name)
+             .putFloat(KEY_TOTAL_QUOTA, quota).apply();
     }
 
     public boolean isSetupDone()    { return prefs.getBoolean(KEY_SETUP_DONE, false); }
@@ -64,7 +80,7 @@ public class QuotaManager {
 
     public boolean isEvenVehicle() {
         for (char c : getVehicleName().toCharArray())
-            if (Character.isDigit(c)) return (Character.getNumericValue(c) % 2 == 0);
+            if (Character.isDigit(c)) return Character.getNumericValue(c) % 2 == 0;
         return true;
     }
 
@@ -84,19 +100,19 @@ public class QuotaManager {
 
     private void clearWindow() {
         prefs.edit().remove(KEY_WINDOW_START_MS).remove(KEY_REFILL_COUNT)
-             .remove(KEY_REFILL_1_LITRES).remove(KEY_REFILL_2_LITRES).apply();
+             .remove(KEY_REFILL_1_LITRES).remove(KEY_REFILL_2_LITRES)
+             .remove(KEY_REFILL_2_DATE_MS).apply();
     }
 
-    public void setWindowStartDate(long ms) {
-        prefs.edit().putLong(KEY_WINDOW_START_MS, ms).apply();
-    }
+    public void setWindowStartDate(long ms) { prefs.edit().putLong(KEY_WINDOW_START_MS, ms).apply(); }
+    public void setRefill2Date(long ms)     { prefs.edit().putLong(KEY_REFILL_2_DATE_MS, ms).apply(); }
 
     // ─── Refill recording ─────────────────────────────────────────────────────
 
     public RefillResult recordRefill(float litres) {
         checkAndResetExpiredWindow();
         int count = prefs.getInt(KEY_REFILL_COUNT, 0);
-        if (count >= MAX_REFILLS)               return RefillResult.ALREADY_USED_MAX;
+        if (count >= MAX_REFILLS)                return RefillResult.ALREADY_USED_MAX;
         if (litres > getRemainingLitres()+0.05f) return RefillResult.EXCEEDS_QUOTA;
         SharedPreferences.Editor ed = prefs.edit();
         if (count == 0) {
@@ -126,16 +142,11 @@ public class QuotaManager {
         return diff <= 0 ? 0 : (int) Math.ceil((double)diff / (24.0*60*60*1000));
     }
 
-    // ─── Eligible days in window ──────────────────────────────────────────────
+    // ─── Eligible days ────────────────────────────────────────────────────────
 
-    /**
-     * Window ထဲ ကျန်ရှိသော ဒုတိယ ဖြည့်နိုင်သောနေ့များ (ယနေ့ + နောက်ပိုင်း)
-     * 2 ကြိမ် ပြည့်သွားပြီဆို empty list ပြန်သည်
-     */
     public List<Long> getRemainingEligibleDaysInWindow() {
         List<Long> result = new ArrayList<>();
         checkAndResetExpiredWindow();
-
         if (getRefillCount() >= MAX_REFILLS) return result;
         if (getRemainingLitres() <= 0.01f)   return result;
 
@@ -143,43 +154,32 @@ public class QuotaManager {
         long windowEnd = start == 0L ? Long.MAX_VALUE : start + WINDOW_MS;
         boolean needEven = isEvenVehicle();
 
-        // Start from TODAY midnight — include today if it is an eligible day
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
+        cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.set(Calendar.MILLISECOND, 0);
 
-        // If window started TODAY (first refill was today), skip today for 2nd refill
-        // because you cannot fill the same day twice
         if (start != 0L) {
             Calendar startCal = Calendar.getInstance();
             startCal.setTimeInMillis(start);
-            boolean startedToday = (startCal.get(Calendar.YEAR)        == cal.get(Calendar.YEAR)
-                                 && startCal.get(Calendar.DAY_OF_YEAR) == cal.get(Calendar.DAY_OF_YEAR));
+            boolean startedToday = startCal.get(Calendar.YEAR) == cal.get(Calendar.YEAR)
+                                && startCal.get(Calendar.DAY_OF_YEAR) == cal.get(Calendar.DAY_OF_YEAR);
             if (startedToday) cal.add(Calendar.DAY_OF_YEAR, 1);
         }
 
         for (int i = 0; i < 8; i++) {
             long t = cal.getTimeInMillis();
             if (t >= windowEnd) break;
-            if ((cal.get(Calendar.DAY_OF_MONTH) % 2 == 0) == needEven) {
-                result.add(t);
-            }
+            if ((cal.get(Calendar.DAY_OF_MONTH) % 2 == 0) == needEven) result.add(t);
             cal.add(Calendar.DAY_OF_YEAR, 1);
         }
         return result;
     }
 
-    /**
-     * ဒုတိယ ဖြည့်နိုင်သောနေ့များ ပြသရန် string
-     * ဥပမာ: "08 Apr (Wed),  10 Apr (Fri),  12 Apr (Sun)"
-     */
     public String getRemainingEligibleDaysStr() {
-        if (getRefillCount() >= MAX_REFILLS)     return "✅ ၂ ကြိမ် ပြည့်ပြီ — နောက်ကိုတာ " + getNewQuotaDateStr();
-        if (getRemainingLitres() <= 0.01f)        return "ကိုတာ ကုန်ပြီ — " + getNewQuotaDateStr();
+        if (getRefillCount() >= MAX_REFILLS) return "✅ ၂ ကြိမ် ပြည့်ပြီ — နောက်ကိုတာ " + getNewQuotaDateStr();
+        if (getRemainingLitres() <= 0.01f)   return "ကိုတာ ကုန်ပြီ — " + getNewQuotaDateStr();
         List<Long> days = getRemainingEligibleDaysInWindow();
-        if (days.isEmpty())                       return "—  (window ထဲ ကျန်နေ့ မရှိ)";
+        if (days.isEmpty()) return "—  (window ထဲ ကျန်နေ့ မရှိ)";
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < days.size(); i++) {
             if (i > 0) sb.append(",   ");
@@ -202,36 +202,29 @@ public class QuotaManager {
         return next < 0 ? "—" : DATE_FMT.format(new Date(next));
     }
 
-    /**
-     * Next single eligible day ms — for alarm/notification logic
-     */
     public long getNextEligibleDayMs() {
         checkAndResetExpiredWindow();
         if (getRefillCount() >= MAX_REFILLS || getRemainingLitres() <= 0.01f) {
-            // Both refills done → next new quota day
             long start = prefs.getLong(KEY_WINDOW_START_MS, 0L);
-            long from  = start == 0L ? System.currentTimeMillis() : start + WINDOW_MS;
-            return findNextEligibleDay(from, Long.MAX_VALUE);
+            return findNextEligibleDay(start == 0L ? System.currentTimeMillis() : start + WINDOW_MS, Long.MAX_VALUE);
         }
         List<Long> days = getRemainingEligibleDaysInWindow();
         if (!days.isEmpty()) return days.get(0);
-        // Fallback: new quota
         long start = prefs.getLong(KEY_WINDOW_START_MS, 0L);
-        long from  = start == 0L ? System.currentTimeMillis() : start + WINDOW_MS;
-        return findNextEligibleDay(from, Long.MAX_VALUE);
+        return findNextEligibleDay(start == 0L ? System.currentTimeMillis() : start + WINDOW_MS, Long.MAX_VALUE);
     }
 
     private long findNextEligibleDay(long fromMs, long maxMs) {
         boolean needEven = isEvenVehicle();
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(fromMs);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0); cal.set(Calendar.SECOND, 0); cal.set(Calendar.MILLISECOND, 0);
-        if (cal.getTimeInMillis() < fromMs) cal.add(Calendar.DAY_OF_YEAR, 1);
-        for (int i = 0; i < 30; i++) {
+        cal.set(Calendar.HOUR_OF_DAY,0); cal.set(Calendar.MINUTE,0);
+        cal.set(Calendar.SECOND,0); cal.set(Calendar.MILLISECOND,0);
+        if (cal.getTimeInMillis() < fromMs) cal.add(Calendar.DAY_OF_YEAR,1);
+        for (int i=0; i<30; i++) {
             if (cal.getTimeInMillis() > maxMs) return -1L;
-            if ((cal.get(Calendar.DAY_OF_MONTH) % 2 == 0) == needEven) return cal.getTimeInMillis();
-            cal.add(Calendar.DAY_OF_YEAR, 1);
+            if ((cal.get(Calendar.DAY_OF_MONTH)%2==0) == needEven) return cal.getTimeInMillis();
+            cal.add(Calendar.DAY_OF_YEAR,1);
         }
         return -1L;
     }
@@ -240,108 +233,88 @@ public class QuotaManager {
 
     public String getRefuelStatusMessage() {
         checkAndResetExpiredWindow();
-        float total = getTotalQuota(), used = getUsedLitres(), rem = total - used;
-        int   refLeft = getRemainingRefills(), daysLeft = getDaysUntilReset();
+        float total=getTotalQuota(), used=getUsedLitres(), rem=total-used;
+        int refLeft=getRemainingRefills(), daysLeft=getDaysUntilReset();
 
-        if (!isWindowActive() && getRefillCount() == 0) {
+        if (!isWindowActive() && getRefillCount()==0) {
             return "✅ ဆီဖြည့်ဖို့ အဆင်သင့်ဖြစ်ပြီ!\n\n"
-                + "ကား: " + getVehicleTypeLabel() + "  |  ကိုတာ: " + String.format("%.1f", total) + " L\n"
-                + "🆕 ဖြည့်နိုင်သောနေ့: " + getNewQuotaDateStr();
+                + "ကား: "+getVehicleTypeLabel()+"  |  ကိုတာ: "+String.format("%.1f",total)+" L\n"
+                + "🆕 ဖြည့်နိုင်သောနေ့: "+getNewQuotaDateStr();
         }
-        if (refLeft <= 0 || rem <= 0.01f) {
+        if (refLeft<=0 || rem<=0.01f) {
             return "⛽ ကိုတာ / ဖြည့်ခွင့် ကုန်ပြီ\n\n"
-                + "သုံးပြီး: " + String.format("%.1f / %.1f", used, total) + " L\n"
-                + "Window ကျန်: " + daysLeft + " ရက်\n"
-                + "🆕 နောက်ကိုတာ: " + getNewQuotaDateStr();
+                + "သုံးပြီး: "+String.format("%.1f / %.1f",used,total)+" L\n"
+                + "Window ကျန်: "+daysLeft+" ရက်\n"
+                + "🆕 နောက်ကိုတာ: "+getNewQuotaDateStr();
         }
         return "⛽ ကိုတာ အခြေအနေ\n\n"
-            + "ကျန်ဆီ: " + String.format("%.1f", rem) + " L  (သုံးပြီး: " + String.format("%.1f / %.1f", used, total) + " L)\n"
-            + "ဖြည့်ခွင့်ကျန်: " + refLeft + " ကြိမ်  |  Window ကျန်: " + daysLeft + " ရက်\n\n"
-            + "⛽ ဖြည့်နိုင်သောနေ့:\n" + getRemainingEligibleDaysStr() + "\n\n"
-            + "📅 ပထမဖြည့်ခဲ့: " + getFirstRefillDateStr() + "\n"
-            + "🆕 နောက်ကိုတာ: " + getNewQuotaDateStr();
+            + "ကျန်ဆီ: "+String.format("%.1f",rem)+" L  (သုံးပြီး: "+String.format("%.1f/%.1f",used,total)+" L)\n"
+            + "ဖြည့်ခွင့်ကျန်: "+refLeft+" ကြိမ်  |  Window ကျန်: "+daysLeft+" ရက်\n\n"
+            + "⛽ ဖြည့်နိုင်သောနေ့:\n"+getRemainingEligibleDaysStr()+"\n\n"
+            + "📅 ပထမဖြည့်ခဲ့: "+getFirstRefillDateStr()+"\n"
+            + "🆕 နောက်ကိုတာ: "+getNewQuotaDateStr();
     }
 
-    // ─── Reminder type ────────────────────────────────────────────────────────
+    // ─── Reminder ─────────────────────────────────────────────────────────────
 
     public enum ReminderType { NONE, NEW_QUOTA_AVAILABLE, REFILL_DAY }
 
     public ReminderType getReminderTypeForTonight() {
         checkAndResetExpiredWindow();
-        // Both refills done → check if new quota is tomorrow
-        if (getRefillCount() >= MAX_REFILLS || getRemainingLitres() <= 0.01f) {
-            long nextQuota = getNextEligibleDayMs();
-            return isTomorrow(nextQuota) ? ReminderType.NEW_QUOTA_AVAILABLE : ReminderType.NONE;
+        if (getRefillCount()>=MAX_REFILLS || getRemainingLitres()<=0.01f) {
+            return isTomorrow(getNextEligibleDayMs()) ? ReminderType.NEW_QUOTA_AVAILABLE : ReminderType.NONE;
         }
-        // Has remaining refills → is any eligible day tomorrow?
-        List<Long> days = getRemainingEligibleDaysInWindow();
-        for (long d : days) {
+        for (long d : getRemainingEligibleDaysInWindow())
             if (isTomorrow(d)) return ReminderType.REFILL_DAY;
-        }
         return ReminderType.NONE;
     }
 
-    public boolean shouldRemindTonight() { return getReminderTypeForTonight() != ReminderType.NONE; }
+    public boolean shouldRemindTonight()    { return getReminderTypeForTonight() != ReminderType.NONE; }
 
-    /** True if today IS an eligible refill day */
     public boolean isTodayEligibleRefillDay() {
-        if (getRefillCount() >= MAX_REFILLS || getRemainingLitres() <= 0.01f) return false;
+        if (getRefillCount()>=MAX_REFILLS || getRemainingLitres()<=0.01f) return false;
         boolean needEven = isEvenVehicle();
-        int today = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
-        return (today % 2 == 0) == needEven;
+        return (Calendar.getInstance().get(Calendar.DAY_OF_MONTH)%2==0) == needEven;
     }
 
     private boolean isTomorrow(long ms) {
-        if (ms < 0) return false;
-        Calendar tomorrow = Calendar.getInstance();
-        tomorrow.add(Calendar.DAY_OF_YEAR, 1);
-        Calendar target = Calendar.getInstance();
-        target.setTimeInMillis(ms);
-        return tomorrow.get(Calendar.YEAR)        == target.get(Calendar.YEAR)
-            && tomorrow.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR);
+        if (ms<0) return false;
+        Calendar tom=Calendar.getInstance(); tom.add(Calendar.DAY_OF_YEAR,1);
+        Calendar tgt=Calendar.getInstance(); tgt.setTimeInMillis(ms);
+        return tom.get(Calendar.YEAR)==tgt.get(Calendar.YEAR)
+            && tom.get(Calendar.DAY_OF_YEAR)==tgt.get(Calendar.DAY_OF_YEAR);
     }
 
     // ─── Edit refill ──────────────────────────────────────────────────────────
 
     public float getLastRefillLitres() {
-        int c = prefs.getInt(KEY_REFILL_COUNT, 0);
-        if (c == 2) return prefs.getFloat(KEY_REFILL_2_LITRES, 0f);
-        if (c == 1) return prefs.getFloat(KEY_REFILL_1_LITRES, 0f);
+        int c=prefs.getInt(KEY_REFILL_COUNT,0);
+        if (c==2) return prefs.getFloat(KEY_REFILL_2_LITRES,0f);
+        if (c==1) return prefs.getFloat(KEY_REFILL_1_LITRES,0f);
         return 0f;
     }
-    public int getLastRefillNumber() { return prefs.getInt(KEY_REFILL_COUNT, 0); }
+
+    public int getLastRefillNumber() { return prefs.getInt(KEY_REFILL_COUNT,0); }
 
     public boolean editLastRefill(float newLitres) {
-        int count = prefs.getInt(KEY_REFILL_COUNT, 0);
-        if (count == 0) return false;
-        float other = count == 2 ? prefs.getFloat(KEY_REFILL_1_LITRES, 0f) : 0f;
-        if (newLitres > (getTotalQuota() - other) + 0.05f) return false;
-        SharedPreferences.Editor ed = prefs.edit();
-        if (count == 1) ed.putFloat(KEY_REFILL_1_LITRES, newLitres);
-        else ed.putFloat(KEY_REFILL_2_LITRES, newLitres);
-        ed.apply();
-        return true;
+        int count=prefs.getInt(KEY_REFILL_COUNT,0);
+        if (count==0) return false;
+        float other = count==2 ? prefs.getFloat(KEY_REFILL_1_LITRES,0f) : 0f;
+        if (newLitres>(getTotalQuota()-other)+0.05f) return false;
+        SharedPreferences.Editor ed=prefs.edit();
+        if (count==1) ed.putFloat(KEY_REFILL_1_LITRES,newLitres);
+        else ed.putFloat(KEY_REFILL_2_LITRES,newLitres);
+        ed.apply(); return true;
     }
 
     public void deleteLastRefill() {
-        int count = prefs.getInt(KEY_REFILL_COUNT, 0);
-        if (count == 0) return;
-        SharedPreferences.Editor ed = prefs.edit();
-        if (count == 1) ed.remove(KEY_WINDOW_START_MS).remove(KEY_REFILL_COUNT)
-                          .remove(KEY_REFILL_1_LITRES).remove(KEY_REFILL_2_LITRES);
-        else ed.remove(KEY_REFILL_2_LITRES).putInt(KEY_REFILL_COUNT, 1);
+        int count=prefs.getInt(KEY_REFILL_COUNT,0);
+        if (count==0) return;
+        SharedPreferences.Editor ed=prefs.edit();
+        if (count==1) ed.remove(KEY_WINDOW_START_MS).remove(KEY_REFILL_COUNT)
+                        .remove(KEY_REFILL_1_LITRES).remove(KEY_REFILL_2_LITRES).remove(KEY_REFILL_2_DATE_MS);
+        else ed.remove(KEY_REFILL_2_LITRES).remove(KEY_REFILL_2_DATE_MS).putInt(KEY_REFILL_COUNT,1);
         ed.apply();
-    }
-
-    public static final String KEY_REFILL_2_DATE_MS = "refill_2_date_ms";
-
-    public void setRefill2Date(long ms) {
-        prefs.edit().putLong(KEY_REFILL_2_DATE_MS, ms).apply();
-    }
-
-    public String getRefill2DateStr() {
-        long ms = prefs.getLong(KEY_REFILL_2_DATE_MS, 0L);
-        return ms == 0L ? "" : DATE_FMT.format(new java.util.Date(ms));
     }
 
     public enum RefillResult { SUCCESS, ALREADY_USED_MAX, EXCEEDS_QUOTA }
